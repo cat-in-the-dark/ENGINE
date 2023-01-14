@@ -1,0 +1,18 @@
+node_modules/
+
+.DS_Store
+Thumbs.db
+Desktop.ini
+npm-debug.log
+lerna-debug.log
+.eslintcache
+
+# project files
+.project
+
+# vim swap files
+*.sw*
+
+# emacs temp files
+*~
+\#*#
