@@ -17,20 +17,13 @@
     "importsNotUsedAsValues": "error",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "baseUrl": "./",
-    "paths": {
-      "@engine/*": [
-        "lib/"
-      ]
-    }
+    "forceConsistentCasingInFileNames": true
   },
   "exclude": [
     "node_modules"
   ],
   "include": [
-    "example",
-    "lib"
+    "src",
   ],
   "$schema": "https://json.schemastore.org/tsconfig"
 }

@@ -1,3 +1,5 @@
+import {loadImage} from '../image';
+
 const vertexShaderSource = `#version 300 es
 in vec4 a_position;
 in vec2 a_texcoord;
@@ -21,20 +23,11 @@ void main() {
 }
 `;
 
-function loadImage(url) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.src = url;
-    img.onload = () => {
-      resolve(img);
-    };
-    img.onerror = () => {
-      reject(img);
-    };
-  });
-}
-
-function shader(gl, code, shaderType) {
+function shader(
+  gl: WebGL2RenderingContext,
+  code: string,
+  shaderType: 'VERTEX_SHADER' | 'FRAGMENT_SHADER'
+) {
   const sh = gl.createShader(gl[shaderType]);
   if (!sh) {
     throw Error('shader type not supported');
@@ -47,14 +40,20 @@ function shader(gl, code, shaderType) {
   return sh;
 }
 
-function setup() {
-  const canvas = document.querySelector("#canvas");
-  const gl = canvas.getContext("webgl2");
+function setup(): [WebGL2RenderingContext, WebGLProgram] {
+  const canvas = document.querySelector('canvas');
+  if (!canvas) {
+    throw new Error('Canvas not found');
+  }
+  const gl = canvas.getContext('webgl2');
   if (!gl) {
-    throw 'Cannot get webgl2 context';
+    throw new Error('Cannot get webgl2 context');
   }
 
   const program = gl.createProgram();
+  if (!program) {
+    throw new Error('Cannot create shader program');
+  }
   const frag = shader(gl, fragmentShaderSource, 'FRAGMENT_SHADER');
   const vert = shader(gl, vertexShaderSource, 'VERTEX_SHADER');
 
@@ -72,7 +71,7 @@ function setup() {
 // creates a texture info { width: w, height: h, texture: tex }
 // The texture will start with 1x1 pixels and be updated
 // when the image has loaded
-async function loadImageAndCreateTextureInfo(gl, url) {
+async function loadImageAndCreateTextureInfo(gl: WebGL2RenderingContext, url: string) {
   const img = await loadImage(url);
 
   const tex = gl.createTexture();
@@ -89,15 +88,15 @@ async function loadImageAndCreateTextureInfo(gl, url) {
   return tex;
 }
 
-async function main() {
+export async function render() {
   const [gl, program] = setup();
 
   // look up where the vertex data needs to go.
-  const positionAttributeLocation = gl.getAttribLocation(program, "a_position");
-  const texcoordAttributeLocation = gl.getAttribLocation(program, "a_texcoord");
+  const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
+  const texcoordAttributeLocation = gl.getAttribLocation(program, 'a_texcoord');
 
   // lookup uniforms
-  const textureLocation = gl.getUniformLocation(program, "u_texture");
+  const textureLocation = gl.getUniformLocation(program, 'u_texture');
 
   // Create a vertex array object (attribute state)
   const vao = gl.createVertexArray();
@@ -107,27 +106,21 @@ async function main() {
 
   const positionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-    -1, 1,
-    1, 1,
-    -1, -1,
-    -1, -1,
-    1, -1,
-    1, 1,
-  ]), gl.STATIC_DRAW);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([-1, 1, 1, 1, -1, -1, -1, -1, 1, -1, 1, 1]),
+    gl.STATIC_DRAW
+  );
   gl.enableVertexAttribArray(positionAttributeLocation);
   gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
 
   const texcoordBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, texcoordBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-    0, 0,
-    1, 0,
-    0, 1,
-    0, 1,
-    1, 1,
-    1, 0,
-  ]), gl.STATIC_DRAW);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0]),
+    gl.STATIC_DRAW
+  );
   gl.enableVertexAttribArray(texcoordAttributeLocation);
   gl.vertexAttribPointer(texcoordAttributeLocation, 2, gl.FLOAT, true, 0, 0);
 
@@ -152,14 +145,3 @@ async function main() {
 
   draw();
 }
-
-
-function ready(fn) {
-  if (document.readyState !== "loading") {
-    fn();
-  } else {
-    document.addEventListener("DOMContentLoaded", fn);
-  }
-}
-
-ready(main)
