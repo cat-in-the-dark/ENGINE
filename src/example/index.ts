@@ -10,6 +10,6 @@ function ready(fn: () => void) {
 
 ready(main);
 
-async function main() {
+function main() {
   return render();
 }

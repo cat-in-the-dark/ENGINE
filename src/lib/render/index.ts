@@ -23,6 +23,9 @@ void main() {
 }
 `;
 
+const width = 64;
+const height = 48;
+
 function shader(
   gl: WebGL2RenderingContext,
   code: string,
@@ -68,12 +71,25 @@ function setup(): [WebGL2RenderingContext, WebGLProgram] {
   return [gl, program];
 }
 
+function generatePixels() {
+  const pixels = new Uint8Array(width * height * 3);
+
+  const color: [number, number, number] = [200, 12, 123];
+  for (let j = 0; j < height; j++) {
+    for (let i = 0; i < width; i++) {
+      pixels[3 * (i + j * width) + 0] = color[0];
+      pixels[3 * (i + j * width) + 1] = color[1];
+      pixels[3 * (i + j * width) + 2] = color[2];
+    }
+  }
+
+  return pixels;
+}
+
 // creates a texture info { width: w, height: h, texture: tex }
 // The texture will start with 1x1 pixels and be updated
 // when the image has loaded
-async function loadImageAndCreateTextureInfo(gl: WebGL2RenderingContext, url: string) {
-  const img = await loadImage(url);
-
+function createTextureInfo(gl: WebGL2RenderingContext, pixels: Uint8Array) {
   const tex = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, tex);
 
@@ -82,13 +98,13 @@ async function loadImageAndCreateTextureInfo(gl: WebGL2RenderingContext, url: st
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); // pixel perfect render
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, width, height, 0, gl.RGB, gl.UNSIGNED_BYTE, pixels);
   gl.generateMipmap(gl.TEXTURE_2D);
 
   return tex;
 }
 
-export async function render() {
+export function render() {
   const [gl, program] = setup();
 
   // look up where the vertex data needs to go.
@@ -124,7 +140,8 @@ export async function render() {
   gl.enableVertexAttribArray(texcoordAttributeLocation);
   gl.vertexAttribPointer(texcoordAttributeLocation, 2, gl.FLOAT, true, 0, 0);
 
-  const tex = await loadImageAndCreateTextureInfo(gl, 'logo.png');
+  const pixels = generatePixels();
+  const tex = createTextureInfo(gl, pixels);
 
   function draw() {
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
