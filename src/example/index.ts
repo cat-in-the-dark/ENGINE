@@ -1,4 +1,4 @@
-import {render} from '../lib/render/index';
+import {PixelCanvas} from '../lib/render/canvas';
 
 function ready(fn: () => void) {
   if (document.readyState !== 'loading') {
@@ -11,5 +11,22 @@ function ready(fn: () => void) {
 ready(main);
 
 function main() {
-  return render();
+  const canvas = document.querySelector('canvas');
+  if (!canvas) {
+    throw new Error('Canvas not found');
+  }
+  const app = new PixelCanvas(canvas, 240, 136);
+  const color: [number, number, number] = [0, 0, 0];
+
+  const loop = () => {
+    app.clearScreen(color);
+    app.render();
+    color[0] += 0.25;
+    color[1] += 0.5;
+    color[2] += 0.75;
+
+    window.requestAnimationFrame(loop);
+  };
+
+  loop();
 }

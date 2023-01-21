@@ -1,5 +1,3 @@
-import {loadImage} from '../image';
-
 const vertexShaderSource = `#version 300 es
 in vec4 a_position;
 in vec2 a_texcoord;
@@ -23,9 +21,6 @@ void main() {
 }
 `;
 
-const width = 64;
-const height = 48;
-
 function shader(
   gl: WebGL2RenderingContext,
   code: string,
@@ -43,16 +38,32 @@ function shader(
   return sh;
 }
 
-function setup(): [WebGL2RenderingContext, WebGLProgram] {
-  const canvas = document.querySelector('canvas');
-  if (!canvas) {
-    throw new Error('Canvas not found');
+// creates a texture info { width: w, height: h, texture: tex }
+// The texture will start with 1x1 pixels and be updated
+// when the image has loaded
+function createTextureInfo(gl: WebGL2RenderingContext) {
+  const tex = gl.createTexture();
+  if (!tex) {
+    throw new Error('Failed to gl.createTexture');
   }
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); // pixel perfect render
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+  return tex;
+}
+
+export function setupWebGl(canvas: HTMLCanvasElement, width: number, height: number) {
+  const nColors = 3; // RGB
+  const pixels = new Uint8Array(width * height * nColors);
+
   const gl = canvas.getContext('webgl2');
   if (!gl) {
     throw new Error('Cannot get webgl2 context');
   }
-
   const program = gl.createProgram();
   if (!program) {
     throw new Error('Cannot create shader program');
@@ -68,44 +79,6 @@ function setup(): [WebGL2RenderingContext, WebGLProgram] {
     const info = gl.getProgramInfoLog(program);
     throw 'Could not compile WebGL program. \n\n' + info;
   }
-  return [gl, program];
-}
-
-function generatePixels() {
-  const pixels = new Uint8Array(width * height * 3);
-
-  const color: [number, number, number] = [200, 12, 123];
-  for (let j = 0; j < height; j++) {
-    for (let i = 0; i < width; i++) {
-      pixels[3 * (i + j * width) + 0] = color[0];
-      pixels[3 * (i + j * width) + 1] = color[1];
-      pixels[3 * (i + j * width) + 2] = color[2];
-    }
-  }
-
-  return pixels;
-}
-
-// creates a texture info { width: w, height: h, texture: tex }
-// The texture will start with 1x1 pixels and be updated
-// when the image has loaded
-function createTextureInfo(gl: WebGL2RenderingContext, pixels: Uint8Array) {
-  const tex = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, tex);
-
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); // pixel perfect render
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, width, height, 0, gl.RGB, gl.UNSIGNED_BYTE, pixels);
-  gl.generateMipmap(gl.TEXTURE_2D);
-
-  return tex;
-}
-
-export function render() {
-  const [gl, program] = setup();
 
   // look up where the vertex data needs to go.
   const positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
@@ -116,6 +89,9 @@ export function render() {
 
   // Create a vertex array object (attribute state)
   const vao = gl.createVertexArray();
+  if (!vao) {
+    throw new Error('Failed to createVertexArray');
+  }
 
   // and make it the one we're currently working with
   gl.bindVertexArray(vao);
@@ -140,10 +116,12 @@ export function render() {
   gl.enableVertexAttribArray(texcoordAttributeLocation);
   gl.vertexAttribPointer(texcoordAttributeLocation, 2, gl.FLOAT, true, 0, 0);
 
-  const pixels = generatePixels();
-  const tex = createTextureInfo(gl, pixels);
+  const tex = createTextureInfo(gl);
 
-  function draw() {
+  const render = () => {
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, width, height, 0, gl.RGB, gl.UNSIGNED_BYTE, pixels);
+    gl.generateMipmap(gl.TEXTURE_2D);
+
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
     gl.clearColor(0, 0, 0, 0);
@@ -158,7 +136,10 @@ export function render() {
     gl.bindTexture(gl.TEXTURE_2D, tex);
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
-  }
+  };
 
-  draw();
+  return {
+    render,
+    pixels,
+  };
 }
