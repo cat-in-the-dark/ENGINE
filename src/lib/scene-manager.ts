@@ -1,4 +1,4 @@
-import type { IUpdateable } from "./interfaces/updateable";
+import type { IUpdateable } from './interfaces/updateable';
 
 export interface IScene {
   activate(): void;
@@ -7,9 +7,9 @@ export interface IScene {
 }
 
 export class SceneManager implements IUpdateable {
-  private current = "";
-  private next = "";
-  private scenes: Map<string, IScene> = new Map();
+  private current = '';
+  private next = '';
+  private scenes = new Map<string, IScene>();
 
   get currentName() {
     return this.current;

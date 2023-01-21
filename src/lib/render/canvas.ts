@@ -1,4 +1,4 @@
-import {setupWebGl} from './gl';
+import { setupWebGl } from './gl';
 
 export type Color = [number, number, number];
 
@@ -18,9 +18,9 @@ export class PixelCanvas {
 
   pget(x: number, y: number): Color {
     return [
-      this.pixels[3 * (x + y * this.width) + 0] || 0,
-      this.pixels[3 * (x + y * this.width) + 1] || 0,
-      this.pixels[3 * (x + y * this.width) + 2] || 0,
+      this.pixels[3 * (x + y * this.width) + 0] ?? 0,
+      this.pixels[3 * (x + y * this.width) + 1] ?? 0,
+      this.pixels[3 * (x + y * this.width) + 2] ?? 0,
     ];
   }
 

@@ -1,10 +1,5 @@
 export class Rect {
-  constructor(
-    public x: number,
-    public y: number,
-    public w: number,
-    public h: number
-  ) {}
+  constructor(public x: number, public y: number, public w: number, public h: number) {}
 
   get minX() {
     return this.x;

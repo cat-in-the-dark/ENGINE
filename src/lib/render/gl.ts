@@ -33,7 +33,8 @@ function shader(
   gl.shaderSource(sh, code);
   gl.compileShader(sh);
   if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
-    throw 'Could not compile Shader.\n\n' + gl.getShaderInfoLog(sh);
+    const info = gl.getShaderInfoLog(sh) ?? '';
+    throw new Error(`Could not compile Shader.\n\n${info}`);
   }
   return sh;
 }
@@ -76,8 +77,8 @@ export function setupWebGl(canvas: HTMLCanvasElement, width: number, height: num
   gl.linkProgram(program);
   gl.validateProgram(program);
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    const info = gl.getProgramInfoLog(program);
-    throw 'Could not compile WebGL program. \n\n' + info;
+    const info = gl.getProgramInfoLog(program) ?? '';
+    throw new Error(`Could not compile WebGL program.\n\n${info}`);
   }
 
   // look up where the vertex data needs to go.

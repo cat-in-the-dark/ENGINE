@@ -4,14 +4,11 @@ export class Track {
   offset: number;
   duration: number;
 
-  constructor(
-    node: AudioBufferSourceNode,
-    context: AudioContext
-  ) {
+  constructor(node: AudioBufferSourceNode, context: AudioContext) {
     this.node = node;
     this.context = context;
     this.offset = 0;
-    this.duration = this.node.buffer?.duration || 0;
+    this.duration = this.node.buffer?.duration ?? 0;
   }
 
   start() {
@@ -40,10 +37,7 @@ async function loadSoundBuffer(context: AudioContext, url: string) {
   return node;
 }
 
-async function newTrack(
-  context: AudioContext,
-  url: string,
-) {
+async function newTrack(context: AudioContext, url: string) {
   console.log(`Loading ${url}`);
   const node = await loadSoundBuffer(context, url);
   console.log(`Done loading ${url}`);
@@ -56,15 +50,17 @@ export class SoundManager {
 
   constructor() {
     this.context = new AudioContext();
-    this.context.suspend();
+    this.context.suspend().catch((e) => {
+      console.error('SoundManager: ', e);
+    });
     this.tracks = new Map();
   }
 
-  resume() {
-    this.context.resume();
+  async resume() {
+    return this.context.resume();
   }
 
-  async load(urls: Array<string>) {
+  async load(urls: string[]) {
     const promises = urls.map((url) => newTrack(this.context, url));
     const tracks = await Promise.all(promises);
     for (let i = 0; i < urls.length; i++) {

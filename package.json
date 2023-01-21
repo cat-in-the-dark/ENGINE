@@ -3,7 +3,12 @@
     "private": true,
     "scripts": {
         "build": "webpack --config webpack.prod.js",
-        "start": "webpack serve --open --config webpack.dev.js"
+        "start": "webpack serve --open --config webpack.dev.js",
+        "lint": "eslint src"
+    },
+    "engines": {
+        "node": ">=16",
+        "npm": ">=8"
     },
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^5.48.0",

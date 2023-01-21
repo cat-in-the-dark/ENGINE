@@ -4,6 +4,5 @@
   "tabs": false,
   "singleQuote": true,
   "semicolon": true,
-  "quoteProps": "preserve",
-  "bracketSpacing": false
+  "quoteProps": "preserve"
 }

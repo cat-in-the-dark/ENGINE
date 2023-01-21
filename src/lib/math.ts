@@ -6,7 +6,7 @@ export function randomBetween(left: number, right: number) {
   return Math.random() * (right - left) + left;
 }
 
-export function range(begin: number, end: number): Array<number> {
+export function range(begin: number, end: number): number[] {
   return Array.from({ length: end - begin }, (x, i) => i + begin);
 }
 
